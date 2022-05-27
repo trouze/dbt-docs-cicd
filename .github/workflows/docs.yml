@@ -32,7 +32,7 @@ jobs:
           SCHEMA: ${{secrets.SCHEMA}}
           WAREHOUSE: ${{secrets.WAREHOUSE}}
         run:  |
-          dbtProjectsList=(./dbt/*)
+          dbtProjectsList=(./dbt-docs-cicd/*)
           for i in ${dbtProjectsList[@]}; do
             project="$(basename $i)"
             echo "$i"
