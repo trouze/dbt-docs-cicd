@@ -19,7 +19,7 @@ jobs:
           python-version: "3.8.12"
       
       - run:  |
-          pip3 install dbt-core dbt-snowflake
+          pip3 install setuptools wheel dbt-core dbt-snowflake
         shell: bash
 
       - id: dbt-docs-generate
@@ -32,9 +32,16 @@ jobs:
           SCHEMA: ${{secrets.SCHEMA}}
           WAREHOUSE: ${{secrets.WAREHOUSE}}
         run:  |
-          dbt deps
-          dbt docs generate --profiles-dir . --target ${{ secrets.environment }}
-          cd ../../
+          dbtProjectsList=(./dbt/*)
+          for i in ${dbtProjectsList[@]}; do
+            project="$(basename $i)"
+            echo "$i"
+            echo "$project"
+            cd "$i"
+            dbt deps
+            dbt docs generate --profiles-dir . --target ${{ secrets.environment }}
+            cd ../../
+          done
         shell: bash
 
       - id: push-dbt-docs-to-bucket-catalog
