@@ -6,57 +6,58 @@ on:
       - main
 
 jobs:
-  using: "composite"
-  steps:
-    - id: auth
-      uses: google-github-actions/auth@v0
-      with:
-        credentials_json: '${{ secrets.gcp_credentials }}'
-    
-    - id: dbt-get-secrets
-      uses: actions/setup-python@v1
-      with:
-        python-version: "3.8.12"
-    
-    - run:  |
-        pip3 install dbt-core dbt-snowflake
-      shell: bash
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - id: auth
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: '${{ secrets.gcp_credentials }}'
+      
+      - id: dbt-get-secrets
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.8.12"
+      
+      - run:  |
+          pip3 install dbt-core dbt-snowflake
+        shell: bash
 
-    - id: dbt-docs-generate
-      env:
-        SF_USERNAME: ${{secrets.SF_USERNAME}}
-        SF_PASSWORD: ${{secrets.SF_PASSWORD}}
-        ACCOUNT: ${{secrets.ACCOUNT}}
-        DATABASE: ${{secrets.DATABASE}}
-        ROLE: ${{secrets.ROLE}}
-        SCHEMA: ${{secrets.SCHEMA}}
-        WAREHOUSE: ${{secrets.WAREHOUSE}}
-      run:  |
-        dbt deps
-        dbt docs generate --profiles-dir . --target ${{ secrets.environment }}
-        cd ../../
-      shell: bash
+      - id: dbt-docs-generate
+        env:
+          SF_USERNAME: ${{secrets.SF_USERNAME}}
+          SF_PASSWORD: ${{secrets.SF_PASSWORD}}
+          ACCOUNT: ${{secrets.ACCOUNT}}
+          DATABASE: ${{secrets.DATABASE}}
+          ROLE: ${{secrets.ROLE}}
+          SCHEMA: ${{secrets.SCHEMA}}
+          WAREHOUSE: ${{secrets.WAREHOUSE}}
+        run:  |
+          dbt deps
+          dbt docs generate --profiles-dir . --target ${{ secrets.environment }}
+          cd ../../
+        shell: bash
 
-    - id: push-dbt-docs-to-bucket-catalog
-      uses: google-github-actions/upload-cloud-storage@v0
-      with:
-        path: ./target/catalog.json
-        destination: 'gs://${{ secrets.bucket_name }}/dbt-static-site/${{ secrets.environment }}/'
+      - id: push-dbt-docs-to-bucket-catalog
+        uses: google-github-actions/upload-cloud-storage@v0
+        with:
+          path: ./target/catalog.json
+          destination: 'gs://${{ secrets.bucket_name }}/dbt-static-site/${{ secrets.environment }}/'
 
-    - id: push-dbt-docs-to-bucket-manifest
-      uses: google-github-actions/upload-cloud-storage@v0
-      with:
-        path: ./target/manifest.json
-        destination: 'gs://${{ secrets.bucket_name }}/dbt-static-site/${{ secrets.environment }}/'
+      - id: push-dbt-docs-to-bucket-manifest
+        uses: google-github-actions/upload-cloud-storage@v0
+        with:
+          path: ./target/manifest.json
+          destination: 'gs://${{ secrets.bucket_name }}/dbt-static-site/${{ secrets.environment }}/'
 
-    - id: push-dbt-docs-to-bucket-run-results
-      uses: google-github-actions/upload-cloud-storage@v0
-      with:
-        path: ./target/run_results.json
-        destination: 'gs://${{ secrets.bucket_name }}/dbt-static-site/${{ secrets.environment }}/'
+      - id: push-dbt-docs-to-bucket-run-results
+        uses: google-github-actions/upload-cloud-storage@v0
+        with:
+          path: ./target/run_results.json
+          destination: 'gs://${{ secrets.bucket_name }}/dbt-static-site/${{ secrets.environment }}/'
 
-    - id: push-dbt-docs-to-bucket-index
-      uses: google-github-actions/upload-cloud-storage@v0
-      with:
-        path: ./target/index.html
-        destination: 'gs://${{ secrets.bucket_name }}/dbt-static-site/${{ secrets.environment }}/'
+      - id: push-dbt-docs-to-bucket-index
+        uses: google-github-actions/upload-cloud-storage@v0
+        with:
+          path: ./target/index.html
+          destination: 'gs://${{ secrets.bucket_name }}/dbt-static-site/${{ secrets.environment }}/'
