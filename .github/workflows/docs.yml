@@ -12,12 +12,12 @@ jobs:
         uses: google-github-actions/auth@v0
         with:
           credentials_json: '${{ secrets.gcp_credentials }}'
-
+      
       - id: dbt-docs-generate
         uses: mwhitaker/dbt-action@master
         with:
           dbt_command: "dbt docs generate --profiles-dir . --target ${{ secrets.environment }}"
-
+          dbt_project_folder: "dbt-docs-cicd"
         env:
           SF_USERNAME: ${{secrets.SF_USERNAME}}
           SF_PASSWORD: ${{secrets.SF_PASSWORD}}
