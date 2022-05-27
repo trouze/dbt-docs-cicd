@@ -32,7 +32,7 @@ jobs:
           SCHEMA: ${{secrets.SCHEMA}}
           WAREHOUSE: ${{secrets.WAREHOUSE}}
         run:  |
-          cd gcp_docs
+          cd ./gcp_docs
           dbt deps
           dbt docs generate --profiles-dir . --target ${{ secrets.environment }}
         shell: bash
