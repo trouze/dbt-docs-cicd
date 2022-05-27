@@ -23,6 +23,10 @@ jobs:
         shell: bash
 
       - id: dbt-docs-generate
+        uses: mwhitaker/dbt-action@main
+        with:
+          dbt_command: "dbt docs generate --profiles-dir . --target ${{ secrets.environment }}"
+          dbt_project_folder: "gcp_docs"
         env:
           SF_USERNAME: ${{secrets.SF_USERNAME}}
           SF_PASSWORD: ${{secrets.SF_PASSWORD}}
@@ -31,18 +35,6 @@ jobs:
           ROLE: ${{secrets.ROLE}}
           SCHEMA: ${{secrets.SCHEMA}}
           WAREHOUSE: ${{secrets.WAREHOUSE}}
-        run:  |
-          dbtProjectsList=(./dbt-docs-cicd/dbt-docs-cicd/*)
-          for i in ${dbtProjectsList[@]}; do
-            project="$(basename $i)"
-            echo "$i"
-            echo "$project"
-            cd "$i"
-            dbt deps
-            dbt docs generate --profiles-dir . --target ${{ secrets.environment }}
-            cd ../../
-          done
-        shell: bash
 
       - id: push-dbt-docs-to-bucket-catalog
         uses: google-github-actions/upload-cloud-storage@v0
