@@ -1,5 +1,4 @@
 name: "Publish dbt docs"
-description: "Pushes dbt documentation to a GCP Project for use in the Data Catalog"
 on:
   push:
     branches:
