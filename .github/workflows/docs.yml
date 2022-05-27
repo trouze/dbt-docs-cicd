@@ -33,7 +33,7 @@ jobs:
           WAREHOUSE: ${{secrets.WAREHOUSE}}
         run:  |
           pwd
-          cd ./gcp_docs
+          cd /home/runner/work/dbt-docs-cicd/dbt-docs-cicd/gcp_docs
           dbt deps
           dbt docs generate --profiles-dir . --target ${{ secrets.environment }}
         shell: bash
