@@ -5,7 +5,7 @@ on:
     branches:
       - main
 
-runs:
+jobs:
   using: "composite"
   steps:
     - id: auth
