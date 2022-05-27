@@ -12,21 +12,12 @@ jobs:
         uses: google-github-actions/auth@v0
         with:
           credentials_json: '${{ secrets.gcp_credentials }}'
-      
-      - id: dbt-get-secrets
-        uses: actions/setup-python@v1
-        with:
-          python-version: "3.8.12"
-      
-      - run:  |
-          pip3 install setuptools wheel dbt-core dbt-snowflake
-        shell: bash
 
       - id: dbt-docs-generate
         uses: mwhitaker/dbt-action@master
         with:
           dbt_command: "dbt docs generate --profiles-dir . --target ${{ secrets.environment }}"
-          dbt_project_folder: "gcp_docs"
+
         env:
           SF_USERNAME: ${{secrets.SF_USERNAME}}
           SF_PASSWORD: ${{secrets.SF_PASSWORD}}
