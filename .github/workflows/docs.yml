@@ -32,15 +32,9 @@ jobs:
           SCHEMA: ${{secrets.SCHEMA}}
           WAREHOUSE: ${{secrets.WAREHOUSE}}
         run:  |
-          dbtProjectsList=(./*)
-          for i in ${dbtProjectsList[@]}; do
-            project="$(basename $i)"
-            echo "$i"
-            echo "$project"
-            cd "$i"
-            dbt deps
-            dbt docs generate --profiles-dir . --target ${{ secrets.environment }}
-          done
+          cd gcp_docs
+          dbt deps
+          dbt docs generate --profiles-dir . --target ${{ secrets.environment }}
         shell: bash
 
       - id: push-dbt-docs-to-bucket-catalog
