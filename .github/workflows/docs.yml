@@ -40,7 +40,6 @@ jobs:
             cd "$i"
             dbt deps
             dbt docs generate --profiles-dir . --target ${{ secrets.environment }}
-            cd ../../
           done
         shell: bash
 
