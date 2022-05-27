@@ -32,6 +32,7 @@ jobs:
           SCHEMA: ${{secrets.SCHEMA}}
           WAREHOUSE: ${{secrets.WAREHOUSE}}
         run:  |
+          pwd
           cd ./gcp_docs
           dbt deps
           dbt docs generate --profiles-dir . --target ${{ secrets.environment }}
