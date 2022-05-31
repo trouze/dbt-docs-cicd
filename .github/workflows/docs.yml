@@ -17,7 +17,7 @@ jobs:
         uses: mwhitaker/dbt-action@master
         with:
           dbt_command: "dbt docs generate --profiles-dir . --target ${{ secrets.environment }}"
-          dbt_project_folder: "dbt-docs-cicd"
+          dbt_project_folder: "gcp_docs"
         env:
           SF_USERNAME: ${{secrets.SF_USERNAME}}
           SF_PASSWORD: ${{secrets.SF_PASSWORD}}
