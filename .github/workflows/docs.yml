@@ -1,8 +1,8 @@
 name: "Publish dbt docs"
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    types:
+      - closed
 
 jobs:
   build:
@@ -73,4 +73,4 @@ jobs:
         uses: google-github-actions/upload-cloud-storage@v0
         with:
           path: './target/index2.html'
-          destination: '${{ secrets.BUCKET_NAME }}/dbt-docs-static-site/${{ secrets.ENVIRONMENT }}/index2.html'
+          destination: '${{ secrets.BUCKET_NAME }}/dbt-docs-static-site/${{ secrets.ENVIRONMENT }}/'
