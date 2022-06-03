@@ -5,19 +5,28 @@ on:
       - main
 
 jobs:
-  deploy:
+  build:
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
     runs-on: ubuntu-latest
     steps:
-      - id: auth
-        uses: google-github-actions/auth@v0
-        with:
-          credentials_json: '${{ secrets.gcp_credentials }}'
       
-      - id: dbt-docs-generate
-        uses: mwhitaker/dbt-action@master
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - id: setup-env
+        uses: actions/setup-python@v1
         with:
-          dbt_command: "dbt docs generate --profiles-dir . --target ${{ secrets.environment }}"
-          dbt_project_folder: "./gcp_docs"
+          python-version: "3.8.12"
+
+      - run:  |
+          pip3 install -r requirements.txt
+        shell: bash
+      
+      - id: dbt-docs-build
         env:
           SF_USERNAME: ${{secrets.SF_USERNAME}}
           SF_PASSWORD: ${{secrets.SF_PASSWORD}}
@@ -26,27 +35,42 @@ jobs:
           ROLE: ${{secrets.ROLE}}
           SCHEMA: ${{secrets.SCHEMA}}
           WAREHOUSE: ${{secrets.WAREHOUSE}}
+        run:  |
+          dbt docs generate --profiles-dir . --target ${{ secrets.environment }}
+        shell: bash
 
-      - id: push-dbt-docs-to-bucket-catalog
+      - id: build-single-file-site
+        name: Build Single HTML File
+        working-directory: ./target
+        run:  |
+          import json
+
+          search_str = 'o=[i("manifest","manifest.json"+t),i("catalog","catalog.json"+t)]'
+
+          with open('index.html', 'r') as f:
+              content_index = f.read()
+              
+          with open('manifest.json', 'r') as f:
+              json_manifest = json.loads(f.read())
+
+          with open('catalog.json', 'r') as f:
+              json_catalog = json.loads(f.read())
+              
+          with open('index2.html', 'w') as f:
+              new_str = "o=[{label: 'manifest', data: "+json.dumps(json_manifest)+"},{label: 'catalog', data: "+json.dumps(json_catalog)+"}]"
+              new_content = content_index.replace(search_str, new_str)
+              f.write(new_content)
+        shell: python
+
+      - id: auth
+        name: Authenticate to Google cloud
+        uses: google-github-actions/auth@v0
+        with:
+          workload_identity_provider: '${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}'
+          service_account: '${{ secrets.SERVICE_ACCOUNT }}'
+      
+      - id: push-dbt-docs-to-bucket
         uses: google-github-actions/upload-cloud-storage@v0
         with:
-          path: ./target/catalog.json
-          destination: 'gs://${{ secrets.bucket_name }}/dbt-static-site/${{ secrets.environment }}/'
-
-      - id: push-dbt-docs-to-bucket-manifest
-        uses: google-github-actions/upload-cloud-storage@v0
-        with:
-          path: ./target/manifest.json
-          destination: 'gs://${{ secrets.bucket_name }}/dbt-static-site/${{ secrets.environment }}/'
-
-      - id: push-dbt-docs-to-bucket-run-results
-        uses: google-github-actions/upload-cloud-storage@v0
-        with:
-          path: ./target/run_results.json
-          destination: 'gs://${{ secrets.bucket_name }}/dbt-static-site/${{ secrets.environment }}/'
-
-      - id: push-dbt-docs-to-bucket-index
-        uses: google-github-actions/upload-cloud-storage@v0
-        with:
-          path: ./target/index.html
-          destination: 'gs://${{ secrets.bucket_name }}/dbt-static-site/${{ secrets.environment }}/'
+          path: './target/index2.html'
+          destination: '${{ secrets.BUCKET_NAME }}/dbt-docs-static-site/${{ secrets.ENVIRONMENT }}/index2.html'
